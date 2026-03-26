@@ -246,7 +246,6 @@ export default function App() {
     opcoesInvestimento[0].nome
   );
   const [valorInvestimento, setValorInvestimento] = useState("");
-  const [rodadaConfirmada, setRodadaConfirmada] = useState(false);
 
   const investimentoAtual = opcoesInvestimento.find(
     (item) => item.nome === investimentoSelecionado
@@ -357,6 +356,15 @@ export default function App() {
       ? "Atenção"
       : "Crítica";
 
+  const corNota =
+    notaGeral >= 85
+      ? "#047857"
+      : notaGeral >= 70
+      ? "#0369a1"
+      : notaGeral >= 50
+      ? "#b45309"
+      : "#b91c1c";
+
   const adicionarItem = (nome) => {
     setCarrinho((prev) => ({
       ...prev,
@@ -392,7 +400,6 @@ export default function App() {
     });
     setInvestimentoSelecionado(opcoesInvestimento[0].nome);
     setValorInvestimento("");
-    setRodadaConfirmada(false);
   };
 
   const alertas = [];
@@ -481,21 +488,6 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                onClick={() => setRodadaConfirmada(true)}
-                style={{
-                  background: "#0f172a",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 14,
-                  padding: "10px 16px",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  cursor: "pointer",
-                }}
-              >
-                Confirmar rodada
-              </button>
               <button
                 onClick={reiniciarTudo}
                 style={{
@@ -882,7 +874,9 @@ export default function App() {
 
                 <div style={{ color: "#64748b", fontWeight: 600, fontSize: 13 }}>
                   Máximo disponível hoje:{" "}
-                  {formatarMoeda(Math.max(0, SALARIO_BASE - totalCarrinho - totalContas))}
+                  {formatarMoeda(
+                    Math.max(0, SALARIO_BASE - totalCarrinho - totalContas)
+                  )}
                 </div>
 
                 <div
@@ -906,13 +900,25 @@ export default function App() {
                       <div style={{ fontWeight: 800, fontSize: 20 }}>
                         {investimentoAtual.nome}
                       </div>
-                      <div style={{ color: "#64748b", fontWeight: 600, fontSize: 13 }}>
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontWeight: 600,
+                          fontSize: 13,
+                        }}
+                      >
                         Risco: {investimentoAtual.risco}
                       </div>
                     </div>
 
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ color: "#64748b", fontWeight: 600, fontSize: 12 }}>
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontWeight: 600,
+                          fontSize: 12,
+                        }}
+                      >
                         Retorno mensal
                       </div>
                       <div style={{ fontWeight: 800, fontSize: 22 }}>
@@ -974,68 +980,37 @@ export default function App() {
             <section style={cardStyle}>
               <h2 style={{ marginTop: 0, fontSize: 24 }}>4. Alertas inteligentes</h2>
               <div style={{ display: "grid", gap: 10 }}>
-                {rodadaConfirmada ? (
-                  alertas.length ? (
-                    alertas.map((alerta, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          background: "#fff7ed",
-                          color: "#9a3412",
-                          border: "1px solid #fed7aa",
-                          borderRadius: 14,
-                          padding: 14,
-                          fontWeight: 600,
-                          fontSize: 14,
-                        }}
-                      >
-                        {alerta}
-                      </div>
-                    ))
-                  ) : (
+                {alertas.length ? (
+                  alertas.map((alerta, idx) => (
                     <div
+                      key={idx}
                       style={{
-                        background: "#ecfdf5",
-                        color: "#065f46",
-                        border: "1px solid #a7f3d0",
+                        background: "#fff7ed",
+                        color: "#9a3412",
+                        border: "1px solid #fed7aa",
                         borderRadius: 14,
                         padding: 14,
                         fontWeight: 600,
                         fontSize: 14,
                       }}
                     >
-                      Boa organização. Seu mês está equilibrado.
+                      {alerta}
                     </div>
-                  )
+                  ))
                 ) : (
-                  <>
-                    <div
-                      style={{
-                        background: "#fffbeb",
-                        color: "#92400e",
-                        border: "1px solid #fde68a",
-                        borderRadius: 14,
-                        padding: 14,
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}
-                    >
-                      Monte o carrinho, preencha as contas e defina o investimento.
-                    </div>
-                    <div
-                      style={{
-                        background: "#fffbeb",
-                        color: "#92400e",
-                        border: "1px solid #fde68a",
-                        borderRadius: 14,
-                        padding: 14,
-                        fontWeight: 600,
-                        fontSize: 14,
-                      }}
-                    >
-                      Os alertas aparecem depois que você confirmar a rodada.
-                    </div>
-                  </>
+                  <div
+                    style={{
+                      background: "#ecfdf5",
+                      color: "#065f46",
+                      border: "1px solid #a7f3d0",
+                      borderRadius: 14,
+                      padding: 14,
+                      fontWeight: 600,
+                      fontSize: 14,
+                    }}
+                  >
+                    Boa organização. Seu mês está equilibrado.
+                  </div>
                 )}
               </div>
             </section>
@@ -1082,7 +1057,7 @@ export default function App() {
                     Patrimônio do mês
                   </div>
                   <strong style={{ fontSize: 19 }}>
-                    {rodadaConfirmada ? formatarMoeda(patrimonioMes) : "-"}
+                    {formatarMoeda(patrimonioMes)}
                   </strong>
                 </div>
                 <div>
@@ -1090,7 +1065,7 @@ export default function App() {
                     Rendimento do mês
                   </div>
                   <strong style={{ fontSize: 19 }}>
-                    {rodadaConfirmada ? formatarMoeda(rendimentoMes) : "-"}
+                    {formatarMoeda(rendimentoMes)}
                   </strong>
                 </div>
                 <div>
@@ -1098,7 +1073,7 @@ export default function App() {
                     Patrimônio do ano
                   </div>
                   <strong style={{ fontSize: 19 }}>
-                    {rodadaConfirmada ? formatarMoeda(patrimonioAno) : "-"}
+                    {formatarMoeda(patrimonioAno)}
                   </strong>
                 </div>
                 <div>
@@ -1106,15 +1081,15 @@ export default function App() {
                     Rendimento do ano
                   </div>
                   <strong style={{ fontSize: 19 }}>
-                    {rodadaConfirmada ? formatarMoeda(rendimentoAno) : "-"}
+                    {formatarMoeda(rendimentoAno)}
                   </strong>
                 </div>
                 <div>
                   <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
                     Nota
                   </div>
-                  <strong style={{ fontSize: 26 }}>
-                    {rodadaConfirmada ? notaGeral : "-"}
+                  <strong style={{ fontSize: 26, color: corNota }}>
+                    {notaGeral}
                   </strong>
                 </div>
                 <div>
@@ -1124,17 +1099,10 @@ export default function App() {
                   <strong
                     style={{
                       fontSize: 19,
-                      color:
-                        classificacao === "Excelente"
-                          ? "#047857"
-                          : classificacao === "Boa"
-                          ? "#0369a1"
-                          : classificacao === "Atenção"
-                          ? "#b45309"
-                          : "#b91c1c",
+                      color: corNota,
                     }}
                   >
-                    {rodadaConfirmada ? classificacao : "Aguardando análise"}
+                    {classificacao}
                   </strong>
                 </div>
               </div>
@@ -1152,23 +1120,19 @@ export default function App() {
                 {[
                   {
                     titulo: "Cenário atual",
-                    valor: rodadaConfirmada ? saldoFinal : null,
+                    valor: saldoFinal,
                   },
                   {
                     titulo: "Sem não essenciais",
-                    valor: rodadaConfirmada
-                      ? saldoFinal + totalNaoEssenciaisMercado
-                      : null,
+                    valor: saldoFinal + totalNaoEssenciaisMercado,
                   },
                   {
                     titulo: "Impacto extras",
-                    valor: rodadaConfirmada ? totalNaoEssenciaisMercado : null,
+                    valor: totalNaoEssenciaisMercado,
                   },
                   {
                     titulo: "Disciplina extra",
-                    valor: rodadaConfirmada
-                      ? totalNaoEssenciaisMercado + rendimentoMes
-                      : null,
+                    valor: totalNaoEssenciaisMercado + rendimentoMes,
                   },
                 ].map((card) => (
                   <div
@@ -1191,7 +1155,7 @@ export default function App() {
                       {card.titulo}
                     </div>
                     <div style={{ fontWeight: 800, fontSize: 18 }}>
-                      {card.valor === null ? "-" : formatarMoeda(card.valor)}
+                      {formatarMoeda(card.valor)}
                     </div>
                   </div>
                 ))}
@@ -1212,7 +1176,8 @@ export default function App() {
                     fontSize: 13,
                   }}
                 >
-                  Confirme a rodada para ver o resumo do mês e a projeção do ano.
+                  A nota agora atualiza em tempo real conforme você mexe no mercado,
+                  nas contas e no investimento.
                 </div>
                 <div
                   style={{
@@ -1225,7 +1190,8 @@ export default function App() {
                     fontSize: 13,
                   }}
                 >
-                  Enquanto isso, os indicadores ficam bloqueados e aparecem em cinza.
+                  Tente reduzir os não essenciais para ver a diferença no saldo e
+                  na pontuação.
                 </div>
               </div>
             </section>
