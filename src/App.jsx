@@ -1,786 +1,1236 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
-function BarRow({ label, value, color }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-        <span>{label}</span>
-        <span>{value}/5</span>
-      </div>
-      <div className="grid grid-cols-5 gap-1">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-2 rounded-full ${i < value ? color : "bg-slate-200"}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
+const SALARIO_BASE = 1621;
+
+const categoriasMercado = [
+  {
+    id: "basicos",
+    nome: "Alimentos básicos",
+    icone: "🍚",
+    tipo: "essencial",
+    itens: [
+      { nome: "Arroz 5kg", preco: 24.99 },
+      { nome: "Feijão preto 1kg", preco: 6.99 },
+      { nome: "Feijão carioca 1kg", preco: 7.49 },
+      { nome: "Açúcar refinado União", preco: 5.49 },
+      { nome: "Café 500g Pilão", preco: 30.99 },
+      { nome: "Macarrão ninho Fortaleza", preco: 5.99 },
+      { nome: "Macarrão espaguete 500g", preco: 4.49 },
+      { nome: "Óleo de soja 900ml", preco: 7.99 },
+      { nome: "Farinha de trigo 1kg", preco: 5.49 },
+      { nome: "Sal 1kg", preco: 2.49 },
+      { nome: "Molho de tomate", preco: 2.99 },
+      { nome: "Extrato de tomate", preco: 3.49 },
+      { nome: "Alho 100g", preco: 3.49 },
+      { nome: "Cebola (kg)", preco: 4.99 },
+      { nome: "Fubá 1kg", preco: 3.99 },
+      { nome: "Flocão de milho (cuscuz)", preco: 2.99 },
+      { nome: "Miojo", preco: 2.49 },
+      { nome: "Aveia 500g", preco: 5.99 },
+      { nome: "Biscoito cream cracker", preco: 4.49 },
+      { nome: "Pão francês (kg)", preco: 12.99 },
+      { nome: "Pão de forma", preco: 7.49 },
+    ],
+  },
+  {
+    id: "laticinios",
+    nome: "Laticínios e frios",
+    icone: "🧀",
+    tipo: "essencial",
+    itens: [
+      { nome: "Leite integral 1L", preco: 4.79 },
+      { nome: "Leite desnatado 1L", preco: 5.29 },
+      { nome: "Iogurte bandeja", preco: 7.99 },
+      { nome: "Iogurte natural", preco: 4.99 },
+      { nome: "Queijo muçarela 200g", preco: 9.49 },
+      { nome: "Queijo prato 200g", preco: 10.49 },
+      { nome: "Presunto 200g", preco: 7.99 },
+      { nome: "Mortadela 200g", preco: 4.99 },
+      { nome: "Requeijão", preco: 8.49 },
+      { nome: "Manteiga 200g", preco: 9.99 },
+      { nome: "Cream cheese", preco: 8.99 },
+      { nome: "Queijo ralado", preco: 6.49 },
+    ],
+  },
+  {
+    id: "hortifruti",
+    nome: "Hortifruti e legumes",
+    icone: "🥕",
+    tipo: "essencial",
+    itens: [
+      { nome: "Tomate (kg)", preco: 5.99 },
+      { nome: "Batata inglesa (kg)", preco: 6.49 },
+      { nome: "Batata-doce (kg)", preco: 5.99 },
+      { nome: "Cenoura (kg)", preco: 3.99 },
+      { nome: "Repolho (unidade)", preco: 4.49 },
+      { nome: "Abobrinha (kg)", preco: 4.99 },
+      { nome: "Chuchu (kg)", preco: 2.99 },
+      { nome: "Pimentão (kg)", preco: 7.99 },
+      { nome: "Alface (unidade)", preco: 3.49 },
+      { nome: "Banana (kg)", preco: 5.49 },
+      { nome: "Maçã (kg)", preco: 8.99 },
+      { nome: "Laranja (kg)", preco: 4.99 },
+    ],
+  },
+  {
+    id: "carnes",
+    nome: "Carnes e proteínas",
+    icone: "🥩",
+    tipo: "essencial",
+    itens: [
+      { nome: "Carne moída (kg)", preco: 19.99 },
+      { nome: "Linguiça (kg)", preco: 14.99 },
+      { nome: "Peito de frango (kg)", preco: 17.99 },
+      { nome: "Coxa e sobrecoxa (kg)", preco: 13.99 },
+      { nome: "Filé de frango (kg)", preco: 21.99 },
+      { nome: "Bisteca suína (kg)", preco: 18.99 },
+      { nome: "Costela bovina (kg)", preco: 24.99 },
+      { nome: "Acém (kg)", preco: 29.99 },
+      { nome: "Patinho (kg)", preco: 34.99 },
+      { nome: "Alcatra peça (kg)", preco: 32.99 },
+      { nome: "Contra filé (kg)", preco: 36.99 },
+      { nome: "Salsicha 500g", preco: 8.49 },
+      { nome: "Hambúrguer congelado", preco: 12.99 },
+      { nome: "Ovos (dúzia)", preco: 9.99 },
+      { nome: "Sardinha enlatada", preco: 4.49 },
+      { nome: "Atum enlatado", preco: 8.99 },
+    ],
+  },
+  {
+    id: "bebidas",
+    nome: "Bebidas",
+    icone: "🥤",
+    tipo: "misto",
+    itens: [
+      { nome: "Chá (caixa)", preco: 3.49 },
+      { nome: "Água mineral 5L", preco: 5.49 },
+      { nome: "Café solúvel", preco: 12.99 },
+      { nome: "Achocolatado líquido", preco: 4.49, naoEssencial: true },
+      { nome: "Refrigerante lata", preco: 3.49, naoEssencial: true },
+      { nome: "Refrigerante 2L", preco: 8.99, naoEssencial: true },
+      { nome: "Suco em pó", preco: 1.49, naoEssencial: true },
+      { nome: "Suco de caixinha 1L", preco: 5.99, naoEssencial: true },
+      { nome: "Água de coco", preco: 6.49, naoEssencial: true },
+    ],
+  },
+  {
+    id: "higiene",
+    nome: "Higiene pessoal",
+    icone: "🪥",
+    tipo: "essencial",
+    itens: [
+      { nome: "Creme dental", preco: 3.99 },
+      { nome: "Escova de dente", preco: 4.49 },
+      { nome: "Shampoo", preco: 9.99 },
+      { nome: "Condicionador", preco: 11.99 },
+      { nome: "Sabonete", preco: 2.49 },
+      { nome: "Papel higiênico 4 rolos", preco: 6.99 },
+      { nome: "Desodorante", preco: 8.99 },
+      { nome: "Absorvente", preco: 7.49 },
+    ],
+  },
+  {
+    id: "limpeza",
+    nome: "Limpeza",
+    icone: "🧼",
+    tipo: "essencial",
+    itens: [
+      { nome: "Água sanitária", preco: 3.49 },
+      { nome: "Esponja", preco: 1.99 },
+      { nome: "Sabão em barra", preco: 6.49 },
+      { nome: "Desinfetante", preco: 5.99 },
+      { nome: "Detergente", preco: 2.79 },
+      { nome: "Sabão em pó", preco: 10.99 },
+      { nome: "Amaciante", preco: 9.49 },
+      { nome: "Pano de chão", preco: 4.99 },
+      { nome: "Papel toalha", preco: 5.49 },
+    ],
+  },
+  {
+    id: "naoEssenciais",
+    nome: "Não essenciais",
+    icone: "🍪",
+    tipo: "naoEssencial",
+    itens: [
+      { nome: "Biscoito wafer", preco: 2.99, naoEssencial: true },
+      { nome: "Salgadinho pequeno", preco: 2.49, naoEssencial: true },
+      { nome: "Achocolatado em pó", preco: 6.99, naoEssencial: true },
+      { nome: "Pizza congelada", preco: 15.99, naoEssencial: true },
+      { nome: "Batata frita congelada", preco: 14.99, naoEssencial: true },
+      { nome: "Sorvete 1,5L", preco: 18.99, naoEssencial: true },
+      { nome: "Chocolate em barra", preco: 5.99, naoEssencial: true },
+      { nome: "Bombom caixa", preco: 12.99, naoEssencial: true },
+      { nome: "Biscoito recheado", preco: 3.49, naoEssencial: true },
+      { nome: "Pipoca de micro-ondas", preco: 4.99, naoEssencial: true },
+    ],
+  },
+];
+
+const opcoesInvestimento = [
+  {
+    nome: "Reserva de emergência",
+    risco: "Baixo",
+    retornoMensal: 0.8,
+    seguranca: 5,
+    retorno: 2,
+    perda: 1,
+  },
+  {
+    nome: "CDB",
+    risco: "Baixo",
+    retornoMensal: 1.0,
+    seguranca: 4,
+    retorno: 3,
+    perda: 1,
+  },
+  {
+    nome: "Tesouro Direto",
+    risco: "Baixo",
+    retornoMensal: 0.9,
+    seguranca: 5,
+    retorno: 2,
+    perda: 1,
+  },
+  {
+    nome: "Fundos imobiliários",
+    risco: "Médio",
+    retornoMensal: 1.2,
+    seguranca: 3,
+    retorno: 4,
+    perda: 2,
+  },
+];
+
+function formatarMoeda(valor) {
+  return valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 }
 
-function ImpactCard({ title, value }) {
+function barra(valor, cor = "#0f172a") {
   return (
-    <div className="rounded-2xl p-4 border border-slate-200 bg-slate-50">
-      <p className="text-sm text-slate-500">{title}</p>
-      <p className="text-xl font-bold mt-2">{value}</p>
+    <div
+      style={{
+        width: "100%",
+        height: 6,
+        background: "#e5e7eb",
+        borderRadius: 999,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          width: `${(valor / 5) * 100}%`,
+          height: "100%",
+          background: cor,
+          borderRadius: 999,
+        }}
+      />
     </div>
   );
 }
 
 export default function App() {
-  const saldoInicial = 1621;
-
-  const produtosBase = [
-    { id: 1, nome: "Papel higiênico Cotton (11 leve 12)", categoria: "Higiene e Limpeza", valor: 14.99 },
-    { id: 2, nome: "Amaciante Ypê", categoria: "Higiene e Limpeza", valor: 8.99 },
-    { id: 3, nome: "Detergente Ypê", categoria: "Higiene e Limpeza", valor: 2.59 },
-    { id: 4, nome: "Sabonete Palmolive 68g", categoria: "Higiene e Limpeza", valor: 2.49 },
-    { id: 5, nome: "Desodorante Bozzano 150ml", categoria: "Higiene e Limpeza", valor: 11.99 },
-    { id: 6, nome: "Inseticida Raid 248g", categoria: "Higiene e Limpeza", valor: 12.99 },
-
-    { id: 7, nome: "Arroz 5kg", categoria: "Alimentos básicos", valor: 24.99 },
-    { id: 8, nome: "Feijão preto 1kg", categoria: "Alimentos básicos", valor: 6.99 },
-    { id: 9, nome: "Açúcar refinado União", categoria: "Alimentos básicos", valor: 5.49 },
-    { id: 10, nome: "Café 500g Pilão", categoria: "Alimentos básicos", valor: 30.99 },
-    { id: 11, nome: "Leite integral 1L Italac", categoria: "Alimentos básicos", valor: 4.79 },
-    { id: 12, nome: "Óleo Soya", categoria: "Alimentos básicos", valor: 7.49 },
-    { id: 13, nome: "Farinha de trigo Granfino", categoria: "Alimentos básicos", valor: 5.49 },
-    { id: 14, nome: "Macarrão ninho Fortaleza", categoria: "Alimentos básicos", valor: 5.99 },
-
-    { id: 15, nome: "Alcatra peça (kg)", categoria: "Hortifruti e carnes", valor: 32.99 },
-    { id: 16, nome: "Tomate (kg)", categoria: "Hortifruti e carnes", valor: 5.99 },
-    { id: 17, nome: "Alface (unidade)", categoria: "Hortifruti e carnes", valor: 2.99 },
-    { id: 18, nome: "Frango inteiro (kg)", categoria: "Hortifruti e carnes", valor: 11.99 },
-    { id: 19, nome: "Batata (kg)", categoria: "Hortifruti e carnes", valor: 4.49 },
-    { id: 20, nome: "Banana (kg)", categoria: "Hortifruti e carnes", valor: 3.99 },
-
-    { id: 21, nome: "Filtro de café", categoria: "Outros", valor: 4.99 },
-
-    { id: 22, nome: "Chocolate", categoria: "Não essenciais", valor: 8.99 },
-    { id: 23, nome: "Refrigerante 2L", categoria: "Não essenciais", valor: 9.99 },
-    { id: 24, nome: "Biscoito recheado", categoria: "Não essenciais", valor: 4.99 },
-    { id: 25, nome: "Salgadinho", categoria: "Não essenciais", valor: 7.49 },
-    { id: 26, nome: "Sorvete pote", categoria: "Não essenciais", valor: 16.99 },
-    { id: 27, nome: "Suco de caixinha", categoria: "Não essenciais", valor: 6.49 },
-  ];
-
-  const contasBase = [
-    { id: 1, nome: "Aluguel" },
-    { id: 2, nome: "Energia" },
-    { id: 3, nome: "Transporte" },
-    { id: 4, nome: "Internet" },
-    { id: 5, nome: "Água" },
-  ];
-
-  const investimentos = {
-    reserva: { label: "Reserva de emergência", taxa: 0.008, risco: "Baixo" },
-    poupanca: { label: "Poupança", taxa: 0.006, risco: "Baixo" },
-    tesouro: { label: "Tesouro Selic", taxa: 0.009, risco: "Baixo" },
-    cdb: { label: "CDB", taxa: 0.011, risco: "Baixo" },
-    lci: { label: "LCI/LCA", taxa: 0.01, risco: "Baixo" },
-    fii: { label: "Fundos Imobiliários", taxa: 0.015, risco: "Médio" },
-    etf: { label: "ETF", taxa: 0.018, risco: "Médio" },
-    acoes: { label: "Ações", taxa: 0.025, risco: "Médio/Alto" },
-    cripto: { label: "Criptoativos", taxa: 0.04, risco: "Alto" },
-  };
-
-  const [valoresContas, setValoresContas] = useState({});
-  const [contasSelecionadas, setContasSelecionadas] = useState([]);
-  const [carrinho, setCarrinho] = useState([]);
-  const [investimento, setInvestimento] = useState("");
-  const [tipoInvestimento, setTipoInvestimento] = useState("reserva");
+  const [busca, setBusca] = useState("");
+  const [categoriaAberta, setCategoriaAberta] = useState("basicos");
+  const [carrinho, setCarrinho] = useState({});
+  const [contas, setContas] = useState({
+    aluguel: "",
+    energia: "",
+    transporte: "",
+    internet: "",
+    agua: "",
+  });
+  const [investimentoSelecionado, setInvestimentoSelecionado] = useState(
+    opcoesInvestimento[0].nome
+  );
+  const [valorInvestimento, setValorInvestimento] = useState("");
   const [rodadaConfirmada, setRodadaConfirmada] = useState(false);
-  const [carregandoAnalise, setCarregandoAnalise] = useState(false);
 
-  const investimentoInfo = investimentos[tipoInvestimento];
-
-  function atualizarValorConta(id, valor) {
-    setRodadaConfirmada(false);
-    setValoresContas((prev) => ({ ...prev, [id]: valor === "" ? "" : valor }));
-  }
-
-  function alternarConta(contaId) {
-    setRodadaConfirmada(false);
-    setContasSelecionadas((prev) =>
-      prev.includes(contaId)
-        ? prev.filter((id) => id !== contaId)
-        : [...prev, contaId]
-    );
-  }
-
-  function adicionarProduto(produto) {
-    setRodadaConfirmada(false);
-    setCarrinho((prev) => {
-      const existente = prev.find((item) => item.id === produto.id);
-      if (existente) {
-        return prev.map((item) =>
-          item.id === produto.id
-            ? {
-                ...item,
-                quantidade: item.quantidade + 1,
-                subtotal: (item.quantidade + 1) * item.valor,
-              }
-            : item
-        );
-      }
-      return [
-        ...prev,
-        {
-          ...produto,
-          quantidade: 1,
-          subtotal: produto.valor,
-        },
-      ];
-    });
-  }
-
-  function aumentarQuantidade(produtoId) {
-    setRodadaConfirmada(false);
-    setCarrinho((prev) =>
-      prev.map((item) =>
-        item.id === produtoId
-          ? {
-              ...item,
-              quantidade: item.quantidade + 1,
-              subtotal: (item.quantidade + 1) * item.valor,
-            }
-          : item
-      )
-    );
-  }
-
-  function diminuirQuantidade(produtoId) {
-    setRodadaConfirmada(false);
-    setCarrinho((prev) =>
-      prev
-        .map((item) =>
-          item.id === produtoId
-            ? {
-                ...item,
-                quantidade: item.quantidade - 1,
-                subtotal: (item.quantidade - 1) * item.valor,
-              }
-            : item
-        )
-        .filter((item) => item.quantidade > 0)
-    );
-  }
-
-  function removerProduto(produtoId) {
-    setRodadaConfirmada(false);
-    setCarrinho((prev) => prev.filter((item) => item.id !== produtoId));
-  }
-
-  function confirmarRodada() {
-    setRodadaConfirmada(false);
-    setCarregandoAnalise(true);
-    setTimeout(() => {
-      setCarregandoAnalise(false);
-      setRodadaConfirmada(true);
-    }, 1200);
-  }
-
-  function reiniciar() {
-    setValoresContas({});
-    setContasSelecionadas([]);
-    setCarrinho([]);
-    setInvestimento("");
-    setTipoInvestimento("reserva");
-    setRodadaConfirmada(false);
-    setCarregandoAnalise(false);
-  }
-
-  const gastoMercado = carrinho.reduce((total, item) => total + item.subtotal, 0);
-
-  const gastoEssencial = carrinho
-    .filter(
-      (item) =>
-        item.categoria === "Alimentos básicos" ||
-        item.categoria === "Hortifruti e carnes"
-    )
-    .reduce((total, item) => total + item.subtotal, 0);
-
-  const gastoSuperfluo = carrinho
-    .filter(
-      (item) =>
-        item.categoria === "Higiene e Limpeza" ||
-        item.categoria === "Outros" ||
-        item.categoria === "Não essenciais"
-    )
-    .reduce((total, item) => total + item.subtotal, 0);
-
-  const gastoNaoEssencial = carrinho
-    .filter((item) => item.categoria === "Não essenciais")
-    .reduce((total, item) => total + item.subtotal, 0);
-
-  const totalContas = contasSelecionadas.reduce((total, contaId) => {
-    return total + (Number(valoresContas[contaId]) || 0);
-  }, 0);
-
-  const saldoAntesInvestimento = saldoInicial - gastoMercado - totalContas;
-
-  const investimentoNumerico = Math.min(
-    Math.max(Number(investimento) || 0, 0),
-    Math.max(saldoAntesInvestimento, 0)
+  const investimentoAtual = opcoesInvestimento.find(
+    (item) => item.nome === investimentoSelecionado
   );
 
-  const percentualInvestido = saldoInicial > 0 ? investimentoNumerico / saldoInicial : 0;
-
-  const riscoPerda = useMemo(() => {
-    if (!rodadaConfirmada) return 0;
-    if (tipoInvestimento !== "cripto" && tipoInvestimento !== "acoes") return 0;
-
-    const baseNumero =
-      Math.round((gastoMercado + totalContas + investimentoNumerico) * 100) % 100;
-    const houvePerda = baseNumero < 12;
-
-    if (!houvePerda) return 0;
-
-    const percentualPerda = tipoInvestimento === "cripto" ? 0.35 : 0.2;
-    return Number((investimentoNumerico * percentualPerda).toFixed(2));
-  }, [rodadaConfirmada, tipoInvestimento, gastoMercado, totalContas, investimentoNumerico]);
-
-  const rendimento = useMemo(() => {
-    if (!rodadaConfirmada) return 0;
-    const bruto = investimentoNumerico * investimentoInfo.taxa;
-    return Number((bruto - riscoPerda).toFixed(2));
-  }, [rodadaConfirmada, investimentoNumerico, investimentoInfo.taxa, riscoPerda]);
-
-  const saldoAtual = saldoInicial - gastoMercado - totalContas - investimentoNumerico;
-  const patrimonioFinal = saldoAtual + investimentoNumerico + rendimento;
-
-  const resultadoMensal = {
-    patrimonio: Number((saldoAtual + investimentoNumerico + rendimento).toFixed(2)),
-    rendimento: Number(rendimento.toFixed(2)),
-  };
-
-  const resultadoAnual = useMemo(() => {
-    const patrimonioAno =
-      saldoAtual + investimentoNumerico * Math.pow(1 + investimentoInfo.taxa, 12) - riscoPerda;
-    const rendimentoAno = patrimonioAno - saldoAtual - investimentoNumerico;
-
-    return {
-      patrimonio: Number(patrimonioAno.toFixed(2)),
-      rendimento: Number(rendimentoAno.toFixed(2)),
-      sobraProjetada: Number((saldoAtual * 12).toFixed(2)),
-    };
-  }, [saldoAtual, investimentoNumerico, investimentoInfo.taxa, riscoPerda]);
-
-  const notaGeral = useMemo(() => {
-    if (!rodadaConfirmada) return 0;
-
-    let nota = 10;
-
-    if (gastoNaoEssencial >= saldoInicial * 0.02) nota -= 2;
-    if (gastoNaoEssencial >= saldoInicial * 0.05) nota -= 1;
-    if (gastoSuperfluo > gastoEssencial && gastoSuperfluo > 0) nota -= 2;
-    if (totalContas === 0) nota -= 2;
-    if (investimentoNumerico === 0) nota -= 2;
-    if (riscoPerda > 0) nota -= 2;
-    if (saldoAtual < saldoInicial * 0.05) nota -= 2;
-    if (saldoAtual < 0) nota -= 3;
-
-    if ((tipoInvestimento === "acoes" || tipoInvestimento === "cripto") && percentualInvestido >= 0.2) {
-      nota -= 2;
-    }
-    if ((tipoInvestimento === "acoes" || tipoInvestimento === "cripto") && percentualInvestido >= 0.35) {
-      nota -= 2;
-    }
-    if (tipoInvestimento === "cripto" && percentualInvestido >= 0.5) {
-      nota -= 2;
-    }
-
-    if (
-      investimentoNumerico >= saldoInicial * 0.1 &&
-      tipoInvestimento !== "acoes" &&
-      tipoInvestimento !== "cripto"
-    ) {
-      nota += 1;
-    }
-
-    if (nota < 1) nota = 1;
-    if (nota > 10) nota = 10;
-    return nota;
-  }, [
-    rodadaConfirmada,
-    gastoNaoEssencial,
-    gastoSuperfluo,
-    gastoEssencial,
-    totalContas,
-    investimentoNumerico,
-    riscoPerda,
-    saldoAtual,
-    tipoInvestimento,
-    percentualInvestido,
-    saldoInicial,
-  ]);
-
-  const faixaNota = useMemo(() => {
-    if (!rodadaConfirmada) {
-      return {
-        cor: "bg-slate-100 text-slate-400 border-slate-300",
-        label: "Aguardando análise",
-      };
-    }
-    if (notaGeral <= 4) return { cor: "bg-red-100 text-red-700 border-red-200", label: "Baixa" };
-    if (notaGeral <= 7) return { cor: "bg-amber-100 text-amber-700 border-amber-200", label: "Média" };
-    if (notaGeral <= 9) return { cor: "bg-emerald-100 text-emerald-700 border-emerald-200", label: "Boa" };
-    return { cor: "bg-sky-100 text-sky-700 border-sky-200", label: "Excelente" };
-  }, [rodadaConfirmada, notaGeral]);
-
-  const notificacoes = useMemo(() => {
-    if (!rodadaConfirmada) {
-      return [
-        "Confirme a rodada para ver o resumo do mês e a projeção do ano inteiro.",
-        "Enquanto isso, os indicadores ficam bloqueados e aparecem em cinza.",
-      ];
-    }
-
-    const lista = [
-      `Neste mês, seu patrimônio estimado ficou em R$ ${resultadoMensal.patrimonio.toFixed(2)}.`,
-      `Se você repetir esse padrão por 12 meses, sua sobra acumulada pode chegar a R$ ${resultadoAnual.sobraProjetada.toFixed(2)}.`,
-      `Mantendo o investimento atual, a projeção anual de patrimônio vai para R$ ${resultadoAnual.patrimonio.toFixed(2)}.`,
-    ];
-
-    if (riscoPerda > 0) {
-      lista.push(`Nesta simulação, o investimento de risco sofreu uma perda de R$ ${riscoPerda.toFixed(2)}.`);
-    }
-
-    return lista;
-  }, [rodadaConfirmada, resultadoMensal.patrimonio, resultadoAnual.sobraProjetada, resultadoAnual.patrimonio, riscoPerda]);
-
-  const alertas = useMemo(() => {
-    if (!rodadaConfirmada) {
-      return [
-        "Monte o carrinho, marque as contas e defina o investimento.",
-        "Os alertas aparecem depois que você confirmar a rodada.",
-      ];
-    }
-
-    const lista = [];
-    if (gastoNaoEssencial > 0) {
-      lista.push(
-        `Você gastou R$ ${gastoNaoEssencial.toFixed(2)}, o que representa ${((gastoNaoEssencial / saldoInicial) * 100).toFixed(1)}% do salário mínimo.`
-      );
-    }
-    if (gastoSuperfluo > gastoEssencial && gastoSuperfluo > 0) {
-      lista.push("Você gastou mais com itens não essenciais do que com itens básicos.");
-    }
-    if (totalContas === 0) lista.push("Nenhuma conta foi marcada. Isso deixa a simulação menos realista.");
-    if (investimentoNumerico === 0) lista.push("Você não investiu nada nesta rodada.");
-    if ((tipoInvestimento === "acoes" || tipoInvestimento === "cripto") && percentualInvestido >= 0.2) {
-      lista.push("Você colocou uma parte alta da renda em investimento de risco. Isso derruba a segurança do planejamento.");
-    }
-    if (riscoPerda > 0) {
-      lista.push(`Nesta simulação, seu investimento de maior risco sofreu uma perda de R$ ${riscoPerda.toFixed(2)}.`);
-    }
-    if (saldoAtual < saldoInicial * 0.05) {
-      lista.push("Seu caixa final ficou muito baixo em relação ao salário mínimo.");
-    }
-    if (lista.length === 0) {
-      lista.push("Sua rodada ficou equilibrada entre consumo, contas e investimento.");
-    }
-    return lista;
-  }, [
-    rodadaConfirmada,
-    gastoNaoEssencial,
-    gastoSuperfluo,
-    gastoEssencial,
-    totalContas,
-    investimentoNumerico,
-    riscoPerda,
-    saldoAtual,
-    saldoInicial,
-    percentualInvestido,
-    tipoInvestimento,
-  ]);
-
-  const categorias = useMemo(() => {
-    const ordem = [
-      "Alimentos básicos",
-      "Hortifruti e carnes",
-      "Higiene e Limpeza",
-      "Não essenciais",
-      "Outros",
-    ];
-    const agrupado = {};
-    ordem.forEach((categoria) => {
-      agrupado[categoria] = produtosBase.filter((p) => p.categoria === categoria);
+  const mapaProdutos = useMemo(() => {
+    const mapa = {};
+    categoriasMercado.forEach((categoria) => {
+      categoria.itens.forEach((item) => {
+        mapa[item.nome] = {
+          ...item,
+          categoria: categoria.nome,
+          iconeCategoria: categoria.icone,
+          naoEssencial:
+            item.naoEssencial === true || categoria.tipo === "naoEssencial",
+        };
+      });
     });
-    return agrupado;
+    return mapa;
   }, []);
 
-  const cardBloqueado = !rodadaConfirmada;
+  const categoriasFiltradas = useMemo(() => {
+    return categoriasMercado
+      .map((categoria) => ({
+        ...categoria,
+        itens: categoria.itens.filter((item) =>
+          item.nome.toLowerCase().includes(busca.toLowerCase())
+        ),
+      }))
+      .filter((categoria) => categoria.itens.length > 0);
+  }, [busca]);
 
-  function riskBars(kind) {
-    const map = {
-      reserva: { seguranca: 5, retorno: 2, perda: 1 },
-      poupanca: { seguranca: 5, retorno: 2, perda: 1 },
-      tesouro: { seguranca: 5, retorno: 2, perda: 1 },
-      cdb: { seguranca: 4, retorno: 2, perda: 1 },
-      lci: { seguranca: 4, retorno: 2, perda: 1 },
-      fii: { seguranca: 3, retorno: 3, perda: 2 },
-      etf: { seguranca: 3, retorno: 3, perda: 2 },
-      acoes: { seguranca: 2, retorno: 4, perda: 4 },
-      cripto: { seguranca: 1, retorno: 5, perda: 5 },
-    };
-    return map[kind] || map.reserva;
+  const totalCarrinho = useMemo(() => {
+    return Object.entries(carrinho).reduce((acc, [nome, qtd]) => {
+      const produto = mapaProdutos[nome];
+      if (!produto) return acc;
+      return acc + produto.preco * qtd;
+    }, 0);
+  }, [carrinho, mapaProdutos]);
+
+  const totalEssenciaisMercado = useMemo(() => {
+    return Object.entries(carrinho).reduce((acc, [nome, qtd]) => {
+      const produto = mapaProdutos[nome];
+      if (!produto || produto.naoEssencial) return acc;
+      return acc + produto.preco * qtd;
+    }, 0);
+  }, [carrinho, mapaProdutos]);
+
+  const totalNaoEssenciaisMercado = useMemo(() => {
+    return Object.entries(carrinho).reduce((acc, [nome, qtd]) => {
+      const produto = mapaProdutos[nome];
+      if (!produto || !produto.naoEssencial) return acc;
+      return acc + produto.preco * qtd;
+    }, 0);
+  }, [carrinho, mapaProdutos]);
+
+  const totalContas = useMemo(() => {
+    return Object.values(contas).reduce(
+      (acc, valor) => acc + (parseFloat(valor) || 0),
+      0
+    );
+  }, [contas]);
+
+  const valorInvestirNumero = parseFloat(valorInvestimento) || 0;
+
+  const saldoFinal =
+    SALARIO_BASE - totalCarrinho - totalContas - valorInvestirNumero;
+
+  const rendimentoMes =
+    valorInvestirNumero * ((investimentoAtual?.retornoMensal || 0) / 100);
+
+  const patrimonioMes = Math.max(0, valorInvestirNumero + rendimentoMes);
+  const patrimonioAno = patrimonioMes * 12;
+  const rendimentoAno = rendimentoMes * 12;
+
+  const notaGeral = useMemo(() => {
+    let nota = 100;
+
+    const percentualMercado = totalCarrinho / SALARIO_BASE;
+    const percentualContas = totalContas / SALARIO_BASE;
+    const percentualNaoEssencial = totalNaoEssenciaisMercado / SALARIO_BASE;
+    const percentualInvestimento = valorInvestirNumero / SALARIO_BASE;
+
+    if (saldoFinal < 0) nota -= 45;
+    if (saldoFinal >= 0 && saldoFinal < 100) nota -= 15;
+    if (percentualNaoEssencial > 0.08) nota -= 12;
+    if (percentualNaoEssencial > 0.15) nota -= 12;
+    if (percentualContas > 0.55) nota -= 10;
+    if (percentualMercado > 0.4) nota -= 8;
+    if (valorInvestirNumero === 0) nota -= 8;
+    if (percentualInvestimento > 0.2 && saldoFinal < 0) nota -= 10;
+
+    return Math.max(0, Math.round(nota));
+  }, [
+    saldoFinal,
+    totalCarrinho,
+    totalContas,
+    totalNaoEssenciaisMercado,
+    valorInvestirNumero,
+  ]);
+
+  const classificacao =
+    notaGeral >= 85
+      ? "Excelente"
+      : notaGeral >= 70
+      ? "Boa"
+      : notaGeral >= 50
+      ? "Atenção"
+      : "Crítica";
+
+  const adicionarItem = (nome) => {
+    setCarrinho((prev) => ({
+      ...prev,
+      [nome]: (prev[nome] || 0) + 1,
+    }));
+  };
+
+  const removerItem = (nome) => {
+    setCarrinho((prev) => {
+      const atual = prev[nome] || 0;
+      if (atual <= 1) {
+        const copia = { ...prev };
+        delete copia[nome];
+        return copia;
+      }
+      return {
+        ...prev,
+        [nome]: atual - 1,
+      };
+    });
+  };
+
+  const reiniciarTudo = () => {
+    setBusca("");
+    setCategoriaAberta("basicos");
+    setCarrinho({});
+    setContas({
+      aluguel: "",
+      energia: "",
+      transporte: "",
+      internet: "",
+      agua: "",
+    });
+    setInvestimentoSelecionado(opcoesInvestimento[0].nome);
+    setValorInvestimento("");
+    setRodadaConfirmada(false);
+  };
+
+  const alertas = [];
+  if (saldoFinal < 0) {
+    alertas.push("Seu orçamento estourou. Você está gastando acima do salário mínimo.");
+  }
+  if (
+    totalNaoEssenciaisMercado > totalEssenciaisMercado * 0.35 &&
+    totalNaoEssenciaisMercado > 0
+  ) {
+    alertas.push("Os não essenciais estão pesando demais no orçamento.");
+  }
+  if (valorInvestirNumero > 0 && saldoFinal < 50) {
+    alertas.push("O valor investido está alto demais para a sobra atual do mês.");
+  }
+  if (totalContas > SALARIO_BASE * 0.5) {
+    alertas.push("As contas fixas já consomem mais da metade da renda.");
+  }
+  if (valorInvestirNumero === 0) {
+    alertas.push("Mesmo com pouco, separar uma parte para reserva pode melhorar sua segurança financeira.");
   }
 
-  const barras = riskBars(tipoInvestimento);
+  const cardStyle = {
+    background: "#fff",
+    borderRadius: 18,
+    padding: 16,
+    boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
+    border: "1px solid #e5e7eb",
+  };
+
+  const smallCardStyle = {
+    ...cardStyle,
+    padding: 14,
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-5">
-        <header className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="text-center lg:text-left w-full">
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#f3f6fb",
+        padding: 16,
+        fontFamily:
+          'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        color: "#0f172a",
+      }}
+    >
+      <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ ...cardStyle, marginBottom: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  color: "#64748b",
+                  textTransform: "uppercase",
+                  marginBottom: 6,
+                }}
+              >
                 Protótipo interativo
-              </p>
-              <h1 className="text-3xl md:text-4xl font-bold mt-2">Simula-South</h1>
-              <p className="text-slate-600 mt-2 max-w-3xl mx-auto lg:mx-0">
-                Simulação baseada no salário mínimo para mostrar como decisões do mês pesam no orçamento de uma família.
+              </div>
+              <h1 style={{ margin: 0, fontSize: 32, lineHeight: 1.1 }}>
+                Simula-South
+              </h1>
+              <p
+                style={{
+                  margin: "10px 0 0",
+                  color: "#475569",
+                  fontSize: 15,
+                  maxWidth: 700,
+                  lineHeight: 1.45,
+                }}
+              >
+                Simulação baseada no salário mínimo para mostrar como decisões
+                do mês pesam no orçamento de uma família.
               </p>
             </div>
 
-            <div className="flex gap-3 flex-wrap justify-center lg:justify-end">
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
-                onClick={confirmarRodada}
-                disabled={carregandoAnalise}
-                className={`rounded-2xl px-4 py-3 font-medium transition ${
-                  carregandoAnalise
-                    ? "bg-slate-400 text-white cursor-not-allowed"
-                    : "bg-slate-900 text-white hover:opacity-90"
-                }`}
+                onClick={() => setRodadaConfirmada(true)}
+                style={{
+                  background: "#0f172a",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "10px 16px",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: "pointer",
+                }}
               >
-                {carregandoAnalise ? "Calculando..." : "Confirmar rodada"}
+                Confirmar rodada
               </button>
-
               <button
-                onClick={reiniciar}
-                className="rounded-2xl bg-slate-100 text-slate-900 px-4 py-3 font-medium hover:bg-slate-200 transition"
+                onClick={reiniciarTudo}
+                style={{
+                  background: "#e2e8f0",
+                  color: "#0f172a",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "10px 16px",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: "pointer",
+                }}
               >
                 Reiniciar
               </button>
             </div>
           </div>
-        </header>
+        </div>
 
-        <section className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
           {[
-            ["Salário mínimo", saldoInicial],
-            ["Mercado", gastoMercado],
-            ["Não essenciais", gastoNaoEssencial],
-            ["Contas", totalContas],
-            ["Investimento", investimentoNumerico],
-            ["Saldo final", saldoAtual],
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              className="bg-white border border-slate-200 rounded-2xl p-3 text-center shadow-sm"
-            >
-              <p className="text-xs text-slate-500">{label}</p>
-              <p className="font-bold">R$ {Number(value).toFixed(2)}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="grid lg:grid-cols-2 gap-5">
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-            <h2 className="text-xl font-semibold mb-3">1. Mercado</h2>
-            <div className="space-y-4 max-h-[620px] overflow-auto pr-1">
-              {Object.entries(categorias).map(([categoria, produtos]) => (
-                <div key={categoria}>
-                  <h3 className="font-semibold mb-2">{categoria}</h3>
-                  <div className="grid md:grid-cols-2 gap-2">
-                    {produtos.map((produto) => (
-                      <div
-                        key={produto.id}
-                        className="flex justify-between items-center bg-slate-50 p-2 rounded-xl gap-2"
-                      >
-                        <div className="text-sm min-w-0">
-                          <p className="leading-tight">{produto.nome}</p>
-                          <p className="text-xs text-slate-500">
-                            R$ {produto.valor.toFixed(2)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => adicionarProduto(produto)}
-                          className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-sm"
-                        >
-                          +
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-4 mb-3">
-              <h2 className="text-xl font-semibold">Carrinho</h2>
-              <div className="rounded-2xl bg-slate-900 text-white px-4 py-3 text-center min-w-[150px]">
-                <p className="text-xs text-slate-300">Total do carrinho</p>
-                <p className="text-xl font-bold mt-1">R$ {gastoMercado.toFixed(2)}</p>
+            { label: "Salário mínimo", valor: SALARIO_BASE },
+            { label: "Mercado", valor: totalCarrinho },
+            { label: "Não essenciais", valor: totalNaoEssenciaisMercado },
+            { label: "Contas", valor: totalContas },
+            { label: "Investimento", valor: valorInvestirNumero },
+            { label: "Saldo final", valor: saldoFinal },
+          ].map((item) => (
+            <div key={item.label} style={smallCardStyle}>
+              <div
+                style={{
+                  color: "#64748b",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  marginBottom: 6,
+                }}
+              >
+                {item.label}
+              </div>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: 22,
+                  color:
+                    item.label === "Saldo final" && item.valor < 0
+                      ? "#b91c1c"
+                      : "#0f172a",
+                }}
+              >
+                {formatarMoeda(item.valor)}
               </div>
             </div>
+          ))}
+        </div>
 
-            <div className="space-y-3 max-h-[620px] overflow-auto pr-1">
-              {carrinho.length === 0 ? (
-                <p className="text-slate-500 text-sm">Nada no carrinho</p>
-              ) : (
-                carrinho.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex justify-between items-center bg-slate-50 p-3 rounded-xl gap-3"
-                  >
-                    <div className="text-sm min-w-0">
-                      <p>{item.nome}</p>
-                      <p className="text-xs text-slate-500">
-                        {item.quantidade}x • R$ {item.subtotal.toFixed(2)}
-                      </p>
-                    </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.8fr 0.95fr",
+            gap: 16,
+            alignItems: "start",
+          }}
+        >
+          <div style={{ display: "grid", gap: 16 }}>
+            <section style={cardStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <h2 style={{ margin: 0, fontSize: 24 }}>1. Mercado</h2>
+                  <p style={{ margin: "6px 0 0", color: "#64748b", fontSize: 14 }}>
+                    Monte o carrinho usando categorias e busca.
+                  </p>
+                </div>
 
-                    <div className="flex gap-2 items-center">
-                      <button
-                        onClick={() => diminuirQuantidade(item.id)}
-                        className="rounded-lg bg-slate-200 px-2 py-1"
-                      >
-                        -
-                      </button>
-                      <span className="min-w-[20px] text-center">{item.quantidade}</span>
-                      <button
-                        onClick={() => aumentarQuantidade(item.id)}
-                        className="rounded-lg bg-slate-900 text-white px-2 py-1"
-                      >
-                        +
-                      </button>
-                      <button
-                        onClick={() => removerProduto(item.id)}
-                        className="rounded-lg bg-red-100 text-red-700 px-2 py-1 text-xs"
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="grid lg:grid-cols-2 gap-5">
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-            <h2 className="text-xl font-semibold mb-3">2. Contas</h2>
-            <div className="space-y-3">
-              {contasBase.map((conta) => (
                 <div
-                  key={conta.id}
-                  className="flex justify-between items-center gap-3 bg-slate-50 p-3 rounded-xl"
+                  style={{
+                    background: "#0f172a",
+                    color: "#fff",
+                    borderRadius: 16,
+                    padding: "10px 14px",
+                    minWidth: 180,
+                  }}
                 >
-                  <span>{conta.nome}</span>
-                  <div className="flex items-center gap-2">
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>
+                    Total do carrinho
+                  </div>
+                  <div style={{ fontSize: 24, fontWeight: 800 }}>
+                    {formatarMoeda(totalCarrinho)}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <input
+                  type="text"
+                  placeholder="Buscar produto..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #dbe2ea",
+                    outline: "none",
+                    fontSize: 14,
+                    background: "#f8fafc",
+                  }}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  overflowX: "auto",
+                  paddingBottom: 6,
+                  marginBottom: 16,
+                }}
+              >
+                {categoriasMercado.map((categoria) => (
+                  <button
+                    key={categoria.id}
+                    onClick={() => setCategoriaAberta(categoria.id)}
+                    style={{
+                      border: "none",
+                      cursor: "pointer",
+                      borderRadius: 999,
+                      padding: "9px 13px",
+                      background:
+                        categoriaAberta === categoria.id ? "#0f172a" : "#e2e8f0",
+                      color:
+                        categoriaAberta === categoria.id ? "#fff" : "#0f172a",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {categoria.icone} {categoria.nome}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: "grid", gap: 14 }}>
+                {categoriasFiltradas
+                  .filter((categoria) =>
+                    busca ? true : categoria.id === categoriaAberta
+                  )
+                  .map((categoria) => (
+                    <div key={categoria.id}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginBottom: 10,
+                        }}
+                      >
+                        <div style={{ fontSize: 20 }}>{categoria.icone}</div>
+                        <h3 style={{ margin: 0, fontSize: 20 }}>{categoria.nome}</h3>
+                      </div>
+
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {categoria.itens.map((item) => {
+                          const qtd = carrinho[item.nome] || 0;
+                          return (
+                            <div
+                              key={item.nome}
+                              style={{
+                                background: "#f8fafc",
+                                border: "1px solid #e5e7eb",
+                                borderRadius: 14,
+                                padding: 10,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: 10,
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <div>
+                                <div
+                                  style={{
+                                    fontWeight: 700,
+                                    fontSize: 15,
+                                    marginBottom: 3,
+                                  }}
+                                >
+                                  {item.nome}
+                                </div>
+                                <div style={{ color: "#64748b", fontSize: 13 }}>
+                                  {formatarMoeda(item.preco)}
+                                  {(item.naoEssencial ||
+                                    categoria.tipo === "naoEssencial") && (
+                                    <span
+                                      style={{
+                                        marginLeft: 8,
+                                        background: "#fef3c7",
+                                        color: "#92400e",
+                                        padding: "3px 7px",
+                                        borderRadius: 999,
+                                        fontWeight: 700,
+                                        fontSize: 11,
+                                      }}
+                                    >
+                                      Não essencial
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                }}
+                              >
+                                <button
+                                  onClick={() => removerItem(item.nome)}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 10,
+                                    border: "none",
+                                    background: "#e2e8f0",
+                                    cursor: "pointer",
+                                    fontWeight: 800,
+                                    fontSize: 16,
+                                  }}
+                                >
+                                  −
+                                </button>
+                                <div
+                                  style={{
+                                    minWidth: 20,
+                                    textAlign: "center",
+                                    fontWeight: 800,
+                                    fontSize: 15,
+                                  }}
+                                >
+                                  {qtd}
+                                </div>
+                                <button
+                                  onClick={() => adicionarItem(item.nome)}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 10,
+                                    border: "none",
+                                    background: "#0f172a",
+                                    color: "#fff",
+                                    cursor: "pointer",
+                                    fontWeight: 800,
+                                    fontSize: 16,
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </section>
+
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 24 }}>2. Contas</h2>
+              <p style={{ marginTop: 0, color: "#64748b", fontSize: 14 }}>
+                Preencha os custos fixos do mês.
+              </p>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {[
+                  ["aluguel", "Aluguel"],
+                  ["energia", "Energia"],
+                  ["transporte", "Transporte"],
+                  ["internet", "Internet"],
+                  ["agua", "Água"],
+                ].map(([chave, label]) => (
+                  <div
+                    key={chave}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 150px",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        borderRadius: 14,
+                        padding: "12px 14px",
+                        border: "1px solid #e5e7eb",
+                        fontWeight: 700,
+                        fontSize: 15,
+                      }}
+                    >
+                      {label}
+                    </div>
                     <input
                       type="number"
-                      value={valoresContas[conta.id] || ""}
-                      onChange={(e) => atualizarValorConta(conta.id, e.target.value)}
-                      className="border rounded-lg px-2 py-1 w-24"
+                      min="0"
+                      step="0.01"
+                      value={contas[chave]}
+                      onChange={(e) =>
+                        setContas((prev) => ({
+                          ...prev,
+                          [chave]: e.target.value,
+                        }))
+                      }
                       placeholder="0,00"
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 14,
+                        border: "1px solid #dbe2ea",
+                        fontSize: 14,
+                        background: "#fff",
+                      }}
                     />
-                    <button
-                      onClick={() => alternarConta(conta.id)}
-                      className={`rounded-lg px-3 py-1 text-sm ${
-                        contasSelecionadas.includes(conta.id)
-                          ? "bg-emerald-700 text-white"
-                          : "bg-slate-900 text-white"
-                      }`}
-                    >
-                      {contasSelecionadas.includes(conta.id) ? "OK" : "Marcar"}
-                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 24 }}>3. Investimento</h2>
+              <p style={{ marginTop: 0, color: "#64748b", fontSize: 14 }}>
+                Escolha um investimento e simule quanto pretende guardar.
+              </p>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                <select
+                  value={investimentoSelecionado}
+                  onChange={(e) => setInvestimentoSelecionado(e.target.value)}
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #dbe2ea",
+                    fontSize: 14,
+                    background: "#fff",
+                  }}
+                >
+                  {opcoesInvestimento.map((opcao) => (
+                    <option key={opcao.nome} value={opcao.nome}>
+                      {opcao.nome}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Valor para investir"
+                  value={valorInvestimento}
+                  onChange={(e) => setValorInvestimento(e.target.value)}
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: 14,
+                    border: "1px solid #dbe2ea",
+                    fontSize: 14,
+                    background: "#fff",
+                  }}
+                />
+
+                <div style={{ color: "#64748b", fontWeight: 600, fontSize: 13 }}>
+                  Máximo disponível hoje:{" "}
+                  {formatarMoeda(Math.max(0, SALARIO_BASE - totalCarrinho - totalContas))}
+                </div>
+
+                <div
+                  style={{
+                    background: "#f8fafc",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 16,
+                    padding: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      flexWrap: "wrap",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 20 }}>
+                        {investimentoAtual.nome}
+                      </div>
+                      <div style={{ color: "#64748b", fontWeight: 600, fontSize: 13 }}>
+                        Risco: {investimentoAtual.risco}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ color: "#64748b", fontWeight: 600, fontSize: 12 }}>
+                        Retorno mensal
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: 22 }}>
+                        {investimentoAtual.retornoMensal}%
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 10 }}>
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 5,
+                          fontSize: 13,
+                        }}
+                      >
+                        <span>Segurança</span>
+                        <strong>{investimentoAtual.seguranca}/5</strong>
+                      </div>
+                      {barra(investimentoAtual.seguranca, "#10b981")}
+                    </div>
+
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 5,
+                          fontSize: 13,
+                        }}
+                      >
+                        <span>Potencial de retorno</span>
+                        <strong>{investimentoAtual.retorno}/5</strong>
+                      </div>
+                      {barra(investimentoAtual.retorno, "#0ea5e9")}
+                    </div>
+
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 5,
+                          fontSize: 13,
+                        }}
+                      >
+                        <span>Chance de perda</span>
+                        <strong>{investimentoAtual.perda}/5</strong>
+                      </div>
+                      {barra(investimentoAtual.perda, "#f59e0b")}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            </section>
+
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 24 }}>4. Alertas inteligentes</h2>
+              <div style={{ display: "grid", gap: 10 }}>
+                {rodadaConfirmada ? (
+                  alertas.length ? (
+                    alertas.map((alerta, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: "#fff7ed",
+                          color: "#9a3412",
+                          border: "1px solid #fed7aa",
+                          borderRadius: 14,
+                          padding: 14,
+                          fontWeight: 600,
+                          fontSize: 14,
+                        }}
+                      >
+                        {alerta}
+                      </div>
+                    ))
+                  ) : (
+                    <div
+                      style={{
+                        background: "#ecfdf5",
+                        color: "#065f46",
+                        border: "1px solid #a7f3d0",
+                        borderRadius: 14,
+                        padding: 14,
+                        fontWeight: 600,
+                        fontSize: 14,
+                      }}
+                    >
+                      Boa organização. Seu mês está equilibrado.
+                    </div>
+                  )
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        background: "#fffbeb",
+                        color: "#92400e",
+                        border: "1px solid #fde68a",
+                        borderRadius: 14,
+                        padding: 14,
+                        fontWeight: 600,
+                        fontSize: 14,
+                      }}
+                    >
+                      Monte o carrinho, preencha as contas e defina o investimento.
+                    </div>
+                    <div
+                      style={{
+                        background: "#fffbeb",
+                        color: "#92400e",
+                        border: "1px solid #fde68a",
+                        borderRadius: 14,
+                        padding: 14,
+                        fontWeight: 600,
+                        fontSize: 14,
+                      }}
+                    >
+                      Os alertas aparecem depois que você confirmar a rodada.
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
-            <h2 className="text-xl font-semibold mb-3">3. Investimento</h2>
-
-            <select
-              value={tipoInvestimento}
-              onChange={(e) => {
-                setRodadaConfirmada(false);
-                setTipoInvestimento(e.target.value);
-              }}
-              className="w-full mb-3 p-3 border rounded-2xl"
-            >
-              <option value="reserva">Reserva de emergência</option>
-              <option value="poupanca">Poupança</option>
-              <option value="tesouro">Tesouro Selic</option>
-              <option value="cdb">CDB</option>
-              <option value="lci">LCI/LCA</option>
-              <option value="fii">Fundos Imobiliários</option>
-              <option value="etf">ETF</option>
-              <option value="acoes">Ações</option>
-              <option value="cripto">Criptoativos</option>
-            </select>
-
-            <input
-              type="number"
-              placeholder="Valor para investir"
-              value={investimento}
-              onChange={(e) => {
-                setRodadaConfirmada(false);
-                setInvestimento(e.target.value);
-              }}
-              className="w-full p-3 border rounded-2xl"
-            />
-
-            <p className="text-xs text-slate-500 mt-2">
-              Máximo disponível: R$ {Math.max(saldoAntesInvestimento, 0).toFixed(2)}
-            </p>
-
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-medium">{investimentoInfo.label}</p>
-                  <p className="text-xs text-slate-500">Risco: {investimentoInfo.risco}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-slate-500">Retorno mensal</p>
-                  <p className="font-bold">{(investimentoInfo.taxa * 100).toFixed(1)}%</p>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <BarRow label="Segurança" value={barras.seguranca} color="bg-emerald-500" />
-                <BarRow label="Potencial de retorno" value={barras.retorno} color="bg-sky-500" />
-                <BarRow label="Chance de perda" value={barras.perda} color="bg-amber-500" />
-              </div>
-
-              {(tipoInvestimento === "cripto" || tipoInvestimento === "acoes") && (
-                <p className="text-xs text-amber-700 mt-3">
-                  Atenção: essa opção pode ter perda considerável em alguns cenários.
+          <aside style={{ display: "grid", gap: 16 }}>
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 22 }}>Carrinho</h2>
+              {Object.keys(carrinho).length === 0 ? (
+                <p style={{ color: "#64748b", marginBottom: 0, fontSize: 14 }}>
+                  Nada no carrinho.
                 </p>
+              ) : (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {Object.entries(carrinho).map(([nome, qtd]) => {
+                    const produto = mapaProdutos[nome];
+                    const subtotal = produto.preco * qtd;
+                    return (
+                      <div
+                        key={nome}
+                        style={{
+                          background: "#f8fafc",
+                          borderRadius: 14,
+                          padding: 12,
+                          border: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, fontSize: 14 }}>{nome}</div>
+                        <div style={{ color: "#64748b", marginTop: 4, fontSize: 13 }}>
+                          {qtd}x • {formatarMoeda(subtotal)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-            </div>
-          </div>
-        </section>
+            </section>
 
-        <section className="grid lg:grid-cols-4 md:grid-cols-2 gap-4">
-          {[
-            ["Patrimônio do mês", rodadaConfirmada ? `R$ ${resultadoMensal.patrimonio.toFixed(2)}` : "-"],
-            ["Rendimento do mês", rodadaConfirmada ? `R$ ${resultadoMensal.rendimento.toFixed(2)}` : "-"],
-            ["Patrimônio do ano", rodadaConfirmada ? `R$ ${resultadoAnual.patrimonio.toFixed(2)}` : "-"],
-            ["Rendimento do ano", rodadaConfirmada ? `R$ ${resultadoAnual.rendimento.toFixed(2)}` : "-"],
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              className={`rounded-3xl p-5 shadow-sm border ${
-                cardBloqueado
-                  ? "bg-slate-100 border-slate-300 text-slate-400"
-                  : "bg-white border-slate-200"
-              }`}
-            >
-              <p className="text-sm">{label}</p>
-              <p className="text-2xl font-bold mt-2">{value}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="grid lg:grid-cols-2 gap-5">
-          <div className={`rounded-3xl p-5 shadow-sm border ${faixaNota.cor}`}>
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <h2 className="text-xl font-semibold">Resumo e nota geral</h2>
-              <div className="text-right">
-                <p className="text-xs opacity-80">Nota</p>
-                <p className="text-2xl font-bold">{rodadaConfirmada ? `${notaGeral}/10` : "-"}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span>Patrimônio final</span>
-                <strong>{rodadaConfirmada ? `R$ ${patrimonioFinal.toFixed(2)}` : "-"}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Rendimento</span>
-                <strong>{rodadaConfirmada ? `R$ ${rendimento.toFixed(2)}` : "-"}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Classificação</span>
-                <strong>{faixaNota.label}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`rounded-3xl p-5 shadow-sm border ${
-              cardBloqueado
-                ? "bg-slate-100 border-slate-300 text-slate-400"
-                : "bg-white border-slate-200"
-            }`}
-          >
-            <h2 className="text-xl font-semibold mb-4">Comparação visual de impacto</h2>
-
-            <div className="grid grid-cols-2 gap-3">
-              <ImpactCard
-                title="Cenário atual"
-                value={rodadaConfirmada ? `R$ ${patrimonioFinal.toFixed(2)}` : "-"}
-              />
-              <ImpactCard
-                title="Sem não essenciais"
-                value={rodadaConfirmada ? `R$ ${(patrimonioFinal + gastoNaoEssencial).toFixed(2)}` : "-"}
-              />
-              <ImpactCard
-                title="Impacto dos não essenciais"
-                value={rodadaConfirmada ? `- R$ ${gastoNaoEssencial.toFixed(2)}` : "-"}
-              />
-              <ImpactCard
-                title="Disciplina extra"
-                value={
-                  rodadaConfirmada
-                    ? `R$ ${(patrimonioFinal + (saldoAtual >= 100 ? saldoAtual * 0.05 : 0)).toFixed(2)}`
-                    : "-"
-                }
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="grid lg:grid-cols-2 gap-5">
-          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 shadow-sm">
-            <h2 className="text-xl font-semibold text-amber-900">4. Alertas inteligentes</h2>
-            <div className="mt-4 space-y-3">
-              {alertas.map((alerta) => (
-                <div
-                  key={alerta}
-                  className="bg-white/70 border border-amber-100 rounded-2xl p-4 text-amber-900 text-sm"
-                >
-                  {alerta}
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 22 }}>Resumo e nota geral</h2>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div>
+                  <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
+                    Patrimônio do mês
+                  </div>
+                  <strong style={{ fontSize: 19 }}>
+                    {rodadaConfirmada ? formatarMoeda(patrimonioMes) : "-"}
+                  </strong>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-sky-50 border border-sky-200 rounded-3xl p-5 shadow-sm">
-            <h2 className="text-xl font-semibold text-sky-900">5. Notificações financeiras</h2>
-            <div className="mt-4 space-y-3">
-              {notificacoes.map((item) => (
-                <div
-                  key={item}
-                  className="bg-white/80 border border-sky-100 rounded-2xl p-4 text-sky-950 text-sm"
-                >
-                  {item}
+                <div>
+                  <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
+                    Rendimento do mês
+                  </div>
+                  <strong style={{ fontSize: 19 }}>
+                    {rodadaConfirmada ? formatarMoeda(rendimentoMes) : "-"}
+                  </strong>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+                <div>
+                  <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
+                    Patrimônio do ano
+                  </div>
+                  <strong style={{ fontSize: 19 }}>
+                    {rodadaConfirmada ? formatarMoeda(patrimonioAno) : "-"}
+                  </strong>
+                </div>
+                <div>
+                  <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
+                    Rendimento do ano
+                  </div>
+                  <strong style={{ fontSize: 19 }}>
+                    {rodadaConfirmada ? formatarMoeda(rendimentoAno) : "-"}
+                  </strong>
+                </div>
+                <div>
+                  <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
+                    Nota
+                  </div>
+                  <strong style={{ fontSize: 26 }}>
+                    {rodadaConfirmada ? notaGeral : "-"}
+                  </strong>
+                </div>
+                <div>
+                  <div style={{ color: "#64748b", marginBottom: 3, fontSize: 12 }}>
+                    Classificação
+                  </div>
+                  <strong
+                    style={{
+                      fontSize: 19,
+                      color:
+                        classificacao === "Excelente"
+                          ? "#047857"
+                          : classificacao === "Boa"
+                          ? "#0369a1"
+                          : classificacao === "Atenção"
+                          ? "#b45309"
+                          : "#b91c1c",
+                    }}
+                  >
+                    {rodadaConfirmada ? classificacao : "Aguardando análise"}
+                  </strong>
+                </div>
+              </div>
+            </section>
+
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 22 }}>Comparação visual</h2>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 10,
+                }}
+              >
+                {[
+                  {
+                    titulo: "Cenário atual",
+                    valor: rodadaConfirmada ? saldoFinal : null,
+                  },
+                  {
+                    titulo: "Sem não essenciais",
+                    valor: rodadaConfirmada
+                      ? saldoFinal + totalNaoEssenciaisMercado
+                      : null,
+                  },
+                  {
+                    titulo: "Impacto extras",
+                    valor: rodadaConfirmada ? totalNaoEssenciaisMercado : null,
+                  },
+                  {
+                    titulo: "Disciplina extra",
+                    valor: rodadaConfirmada
+                      ? totalNaoEssenciaisMercado + rendimentoMes
+                      : null,
+                  },
+                ].map((card) => (
+                  <div
+                    key={card.titulo}
+                    style={{
+                      background: "#f8fafc",
+                      borderRadius: 14,
+                      padding: 12,
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#64748b",
+                        fontWeight: 600,
+                        marginBottom: 6,
+                        fontSize: 12,
+                      }}
+                    >
+                      {card.titulo}
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: 18 }}>
+                      {card.valor === null ? "-" : formatarMoeda(card.valor)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section style={cardStyle}>
+              <h2 style={{ marginTop: 0, fontSize: 22 }}>Notificações</h2>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div
+                  style={{
+                    background: "#eff6ff",
+                    color: "#1d4ed8",
+                    border: "1px solid #bfdbfe",
+                    borderRadius: 14,
+                    padding: 12,
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  Confirme a rodada para ver o resumo do mês e a projeção do ano.
+                </div>
+                <div
+                  style={{
+                    background: "#eff6ff",
+                    color: "#1d4ed8",
+                    border: "1px solid #bfdbfe",
+                    borderRadius: 14,
+                    padding: 12,
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  Enquanto isso, os indicadores ficam bloqueados e aparecem em cinza.
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
       </div>
     </div>
   );
